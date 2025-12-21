@@ -1,0 +1,43 @@
+# ===== Core (kein torch hier!) =====
+numpy<2
+tqdm
+easydict==1.10
+einops
+ftfy
+safetensors>=0.4.3
+opencv-python-headless>=4.9.0.80
+imageio[ffmpeg]
+imageio-ffmpeg
+protobuf==3.19.6
+networkx
+python-dotenv
+sentencepiece>=0.1.99
+
+# ===== HF / Diffusers-Stack (WAN 2.2 kompatibel, inkl. FromOriginalModelMixin) =====
+diffusers==0.31.0
+transformers==4.43.3
+tokenizers==0.19.1
+accelerate==1.1.1
+huggingface_hub>=0.30.1
+
+# ===== Dev / Server (Jupyter + HTTP-API) =====
+fastapi>=0.112
+uvicorn[standard]>=0.30
+pydantic>=2.7,<3
+jupyterlab>=4.2,<5
+ipykernel>=6.29
+
+
+# --- extra deps for new model ---
+descript-audio-codec==1.0.0
+alias-free-torch==0.0.6
+vector-quantize-pytorch==1.24.1
+open-clip-torch==2.7.0
+omegaconf==2.3.0
+pandas==2.2.2
+lightning==2.4.*
+timm
+prefigure
+k-diffusion
+
+
