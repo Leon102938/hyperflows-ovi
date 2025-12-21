@@ -14,16 +14,6 @@ WORKDIR /workspace
 
 
 
-# --- PyTorch-Stack fest auf 2.6.0 setzen + ThinkSound ---
-RUN pip install --no-cache-dir \
-    "torch==2.6.0" \
-    "torchvision==0.21.0" \
-    "torchaudio==2.6.0" \
-    "thinksound==0.0.19"
-
-
-
-
 # Nur kleine Tools; KEIN Python/Torch-Reinstall!
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git git-lfs ffmpeg libsndfile1 libsentencepiece-dev curl wget jq tzdata uuid-runtime \
