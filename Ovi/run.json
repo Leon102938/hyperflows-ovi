@@ -1,0 +1,24 @@
+{
+  "ckpt_dir": "./ckpts",
+  "output_dir": "/workspace/Ovi/outputs",
+  "sample_steps": 50,
+  "solver_name": "unipc",
+  "model_name": "720x720_5s",
+  "shift": 5.0,
+  "sp_size": 1,
+  "audio_guidance_scale": 3.0,
+  "video_guidance_scale": 5.0,
+  "mode": "i2v",
+  "fp8": true,
+  "cpu_offload": true,
+  "seed": 500,
+  "video_negative_prompt": "jitter, flicker, warping, wobble, melting, deformation, blurry, low detail, oversharpen, artifacts, text, watermark, logo, extra limbs, bad hands, distorted fingers",
+  "audio_negative_prompt": "robotic, muffled, echo, distorted",
+  "video_frame_height_width": [
+    720,
+    720
+  ],
+  "text_prompt": "/workspace/Ovi/i2v.csv",
+  "slg_layer": 9,
+  "each_example_n_times": 1
+}

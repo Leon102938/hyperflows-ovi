@@ -1,0 +1,2 @@
+text_prompt,image_path
+"Stylized 3D animated bedroom, keep the exact room layout and camera angle from the input image. Animate: subtle camera dolly-in; the blanket gently lifts and folds as if being pulled up; slight jiggle and moving specular highlights on the material; no scene change, no new objects, no flicker, stable geometry. Audio: soft cloth rustle, gentle crispy crackle, faint footsteps, warm room tone.","/workspace/Ovi/inputs/Test_720.png"
