@@ -44,8 +44,20 @@ NAME_TO_MODEL_SPECS_MAP = {
         "audio_latent_length": 314,
         "video_area": 960 * 960,
         "formatter": lambda text: re.sub(r"<AUDCAP>(.*?)<ENDAUDCAP>", r"Audio: \1", text, flags=re.S)
+    },
+    "720x720_3s": {
+        "path": "model.safetensors",          # nutzt das gleiche 720x720 Modell
+        "video_latent_length": 19,            # ~3s Test (31*3/5 ≈ 18.6)
+        "audio_latent_length": 94,            # ~3s Test (157*3/5 ≈ 94.2)
+        "video_area": 720 * 720,
+        "formatter": lambda text: re.sub(r"Audio:\s*(.*)", r"<AUDCAP>\1<ENDAUDCAP>", text, flags=re.S)
     }
+
+
+
+
 }
+
 
 
 class OviFusionEngine:
@@ -97,9 +109,13 @@ class OviFusionEngine:
         model_specs = NAME_TO_MODEL_SPECS_MAP[model_name]
         basename = model_specs["path"]
         if fp8:
-            assert model_name == "720x720_5s", "FP8 quantization is only supported for 720x720_5s model currently."
+            assert model_name in ["720x720_5s", "720x720_3s"], "FP8 quantization is only supported for 720x720 models currently."
+
             basename = "model_fp8_e4m3fn.safetensors"
-        
+  
+
+
+         
         checkpoint_path = os.path.join(
             config.ckpt_dir,
             "Ovi",
