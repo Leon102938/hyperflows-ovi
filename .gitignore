@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *.so
+**/__pycache__/
+**/*.ipynb
 
 # Jupyter
 .ipynb_checkpoints/
@@ -35,5 +37,11 @@ weights/
 .idea/
 
 # Git
+.git
 .gitkeep
 wheel_flashattn/*.whl
+
+
+*.mp4
+*.png
+*.jpg

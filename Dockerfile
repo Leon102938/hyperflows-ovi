@@ -1,6 +1,13 @@
 # Cleanes RunPod-Base mit CUDA/Torch/Py3.11 vorinstalliert
 FROM runpod/pytorch:0.7.0-cu1251-torch260-ubuntu2204
 
+SHELL ["/bin/bash","-lc"]
+
+
+# Wichtig: richtige Python/Pip (meist Conda)
+ENV PATH=/opt/conda/bin:$PATH
+
+
 # Basics & HF-Caches (nur Orte, kein zusätzliches Python/Torch)
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
@@ -12,6 +19,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /workspace
 
+
+# Quick sanity check: nutzt diese Python-Env wirklich Torch?
+RUN which python && python -V && python -c "import torch; print('torch=', torch.__version__)"
 
 
 # Nur kleine Tools; KEIN Python/Torch-Reinstall!
