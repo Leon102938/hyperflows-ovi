@@ -7,7 +7,7 @@ ftfy
 safetensors>=0.4.3
 opencv-python-headless>=4.9.0.80
 imageio[ffmpeg]
-protobuf==3.20.3
+protobuf==3.19.6
 networkx
 python-dotenv
 sentencepiece>=0.1.99
@@ -30,7 +30,6 @@ ipykernel>=6.29
 # --- extra deps for new model ---
 descript-audio-codec==1.0.0
 vector-quantize-pytorch==1.24.1
-open-clip-torch==2.7.0
 omegaconf==2.3.0
 pandas==2.2.2
 lightning==2.4.*
