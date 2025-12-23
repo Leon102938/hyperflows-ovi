@@ -37,10 +37,6 @@ RUN python3 -m pip uninstall -y flash-attn flash_attn flash_attn_2_cuda || true 
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-COPY requirements_heavy.txt /tmp/requirements_heavy.txt
-RUN set -eux; mkdir -p /workspace/.tmp && export TMPDIR=/workspace/.tmp; \
-     pip install --no-cache-dir -r /tmp/requirements_heavy.txt; \
-     rm -rf /workspace/.tmp /root/.cache ~/.cache /tmp/*
 
 # HF CLI + Turbo-Downloader
 RUN pip install --no-cache-dir "huggingface_hub[cli]" hf_transfer

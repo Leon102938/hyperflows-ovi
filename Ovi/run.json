@@ -18,7 +18,7 @@
     720,
     720
   ],
-  "text_prompt": "/workspace/Ovi/t2v.csv",
+  "text_prompt": "/workspace/Ovi/prompt.csv",
   "slg_layer": 10,
   "each_example_n_times": 1
 }

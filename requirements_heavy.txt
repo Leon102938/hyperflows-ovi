@@ -1,5 +1,0 @@
-# ===== Restliche für Wan2.2 =====
-decord
-librosa
-peft==0.10.0
-dashscope
