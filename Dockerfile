@@ -1,5 +1,5 @@
 # Cleanes RunPod-Base mit CUDA/Torch/Py3.11 vorinstalliert
-FROM runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
+FROM runpod/pytorch:2.6.0-py3.11-cuda12.4.1-devel-ubuntu22.04
 
 # Basics & HF-Caches (nur Orte, kein zusätzliches Python/Torch)
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -37,9 +37,6 @@ RUN python3 -m pip uninstall -y flash-attn flash_attn flash_attn_2_cuda || true 
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-
-# HF CLI + Turbo-Downloader
-RUN pip install --no-cache-dir "huggingface_hub[cli]" hf_transfer
 
 
 
