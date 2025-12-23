@@ -40,7 +40,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 📦 Restliche Python-Deps
 # 4) Rest über requirements.txt (einmal!)
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+RUN /opt/conda/bin/python -V && /opt/conda/bin/python -m pip -V \
+ && /opt/conda/bin/python -m pip install --no-cache-dir -r /tmp/requirements.txt
+
 
 
 
