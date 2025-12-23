@@ -1,5 +1,5 @@
 # Cleanes RunPod-Base mit CUDA/Torch/Py3.11 vorinstalliert
-FROM runpod/pytorch:2.6.0-py3.11-cuda12.4.1-devel-ubuntu22.04
+FROM runpod/pytorch:0.7.0-cu1251-torch260-ubuntu2204
 
 # Basics & HF-Caches (nur Orte, kein zusätzliches Python/Torch)
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -24,11 +24,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 
-# FlashAttention (stable for torch 2.6 + cu12 + cp311 + cxx11abiFALSE)
-RUN python3 -m pip uninstall -y flash-attn flash_attn flash_attn_2_cuda || true && \
-    rm -rf /usr/local/lib/python3.11/dist-packages/flash_attn* || true && \
-    python3 -m pip install --no-deps \
-      https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiFALSE-cp311-cp311-linux_x86_64.whl
 
 
 
