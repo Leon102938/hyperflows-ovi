@@ -7,15 +7,14 @@ ftfy
 safetensors>=0.4.3
 opencv-python-headless>=4.9.0.80
 imageio[ffmpeg]
-imageio-ffmpeg
-protobuf==3.19.6
+protobuf==3.20.3
 networkx
 python-dotenv
 sentencepiece>=0.1.99
 
 # ===== HF / Diffusers-Stack (WAN 2.2 kompatibel, inkl. FromOriginalModelMixin) =====
-diffusers==4.49.0
-transformers==4.43.3
+diffusers==0.35.1
+transformers==4.49.0
 tokenizers==0.20.3
 accelerate==1.1.1
 huggingface_hub>=0.30.1
@@ -30,7 +29,6 @@ ipykernel>=6.29
 
 # --- extra deps for new model ---
 descript-audio-codec==1.0.0
-alias-free-torch==0.0.6
 vector-quantize-pytorch==1.24.1
 open-clip-torch==2.7.0
 omegaconf==2.3.0
