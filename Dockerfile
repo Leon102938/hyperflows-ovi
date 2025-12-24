@@ -4,8 +4,6 @@ FROM runpod/pytorch:0.7.0-cu1251-torch260-ubuntu2204
 SHELL ["/bin/bash","-lc"]
 
 
-# Wichtig: richtige Python/Pip (meist Conda)
-ENV PATH=/opt/conda/bin:$PATH
 
 
 # Basics & HF-Caches (nur Orte, kein zusätzliches Python/Torch)
@@ -40,8 +38,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 📦 Restliche Python-Deps
 # 4) Rest über requirements.txt (einmal!)
 COPY requirements.txt /tmp/requirements.txt
-RUN /opt/conda/bin/python -V && /opt/conda/bin/python -m pip -V \
- && /opt/conda/bin/python -m pip install --no-cache-dir -r /tmp/requirements.txt
+RUN python -V && python -m pip -V \
+ && python -m pip install --no-cache-dir -r /tmp/requirements.txt
 
 
 
