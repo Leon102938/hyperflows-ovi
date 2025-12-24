@@ -35,6 +35,11 @@ dashscope
 scipy
 moviepy==1.0.3
 librosa
-optimum-quanto
+optimum-quant
+omegaconf
+pandas
+hf_transfer
+open-clip-torch
+pydub
 
 

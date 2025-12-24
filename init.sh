@@ -1,50 +1,123 @@
 #!/bin/bash
-# super simple init: lädt nur Wan2.2 TI2V-5B nach /workspace/Wan2.2
+# init.sh — lädt nur OVI + benötigte WAN-Assets + MMAudio nach /workspace/Ovi/ckpts
 
-# Fehler im Script nicht ignorieren
 set -e
 
 # optional: Schalter aus tools.config (falls vorhanden)
 source ./tools.config 2>/dev/null || true
 
-WAN_FLAG_FILE="/workspace/status/wan2.2_ready"
+# Defaults falls tools.config fehlt
+: "${OVI:=on}"          # on/off
+: "${WAN_ASSETS:=on}"   # on/off (VAE + T5 + google/* aus Wan2.2 Repo)
+: "${MMAUDIO:=on}"      # on/off
 
-# Ordner für Status-Flag sicherstellen
-mkdir -p /workspace/status
+STATUS_DIR="/workspace/status"
+CKPT_DIR="/workspace/Ovi/ckpts"
 
-if [ "${Wan22}" = "on" ]; then
-  echo "📹 Lade Wan2.2 TI2V-5B ..."
-  mkdir -p /workspace/Wan2.2
+OVI_FLAG_FILE="$STATUS_DIR/ovi_ready"
+WAN_FLAG_FILE="$STATUS_DIR/wan_assets_ready"
+MM_FLAG_FILE="$STATUS_DIR/mmaudio_ready"
 
-  huggingface-cli download Wan-AI/Wan2.2-TI2V-5B \
-    --local-dir /workspace/Wan2.2/Wan2.2-TI2V-5B \
-    --local-dir-use-symlinks False \
-    --resume-download
+mkdir -p "$STATUS_DIR"
+mkdir -p "$CKPT_DIR"
+mkdir -p "$CKPT_DIR/Ovi"
 
-  echo "✅ Wan2.2 Download fertig."
-  touch "$WAN_FLAG_FILE"
+echo "📁 CKPT_DIR: $CKPT_DIR"
+echo "⚙️  Flags: OVI=$OVI | WAN_ASSETS=$WAN_ASSETS | MMAUDIO=$MMAUDIO"
+
+# -------------------------
+# 1) OVI fp8 Modell (safetensors)
+# -------------------------
+if [ "${OVI}" = "on" ]; then
+  echo "🧠 Lade OVI fp8 Modell ..."
+
+  OVI_OUT="$CKPT_DIR/Ovi/model_fp8_e4m3fn.safetensors"
+
+  if [ -f "$OVI_OUT" ]; then
+    echo "✅ OVI Modell existiert schon: $OVI_OUT"
+  else
+    # Schnellster Weg: huggingface-cli (kann resume, ist meist stabiler als wget)
+    if command -v huggingface-cli >/dev/null 2>&1; then
+      echo "➡️  using huggingface-cli download (resume)"
+      huggingface-cli download rkfg/Ovi-fp8_quantized \
+        --local-dir "$CKPT_DIR/Ovi" \
+        --local-dir-use-symlinks False \
+        --resume-download \
+        --include "model_fp8_e4m3fn.safetensors"
+    else
+      echo "➡️  huggingface-cli nicht gefunden -> fallback wget"
+      wget -O "$OVI_OUT" \
+        "https://huggingface.co/rkfg/Ovi-fp8_quantized/resolve/main/model_fp8_e4m3fn.safetensors"
+    fi
+  fi
+
+  echo "✅ OVI Download fertig."
+  touch "$OVI_FLAG_FILE"
 else
-  echo "⏭️ Wan2.2 Download übersprungen (Wan22 != on)."
+  echo "⏭️ OVI Download übersprungen (OVI != on)."
 fi
 
-# ThinkSound – exakt dein DW
-if [ "${ThinkSound}" = "on" ]; then
-  echo "🎧 Lade ThinkSound (ckpts) ..."
-  mkdir -p /workspace/ThinkSound/ckpts
+# -------------------------
+# 2) WAN2.2 Assets: VAE + T5 + google/*
+# -------------------------
+if [ "${WAN_ASSETS}" = "on" ]; then
+  echo "📦 Lade WAN2.2 Assets (VAE + T5 + google/*)..."
   python - <<'PY'
 from huggingface_hub import snapshot_download
+import os
+
+ckpt_dir = "/workspace/Ovi/ckpts"
+wan_dir = os.path.join(ckpt_dir, "Wan2.2-TI2V-5B")
+os.makedirs(wan_dir, exist_ok=True)
+
 snapshot_download(
-    repo_id="liuhuadai/ThinkSound",
-    repo_type="model",
-    local_dir="/workspace/ThinkSound/ckpts",
+    repo_id="Wan-AI/Wan2.2-TI2V-5B",
+    local_dir=wan_dir,
     local_dir_use_symlinks=False,
     resume_download=True,
+    allow_patterns=[
+        "google/*",
+        "models_t5_umt5-xxl-enc-bf16.pth",
+        "Wan2.2_VAE.pth",
+    ],
 )
-print("OK")
+print("✅ WAN assets ok:", wan_dir)
 PY
-  echo "✅ ThinkSound fertig."
+  echo "✅ WAN Assets Download fertig."
+  touch "$WAN_FLAG_FILE"
 else
-  echo "⏭️ ThinkSound Download übersprungen (ThinkSound != on)."
+  echo "⏭️ WAN Assets übersprungen (WAN_ASSETS != on)."
+fi
+
+# -------------------------
+# 3) MMAudio Assets
+# -------------------------
+if [ "${MMAUDIO}" = "on" ]; then
+  echo "🎧 Lade MMAudio Assets ..."
+  python - <<'PY'
+from huggingface_hub import snapshot_download
+import os
+
+ckpt_dir = "/workspace/Ovi/ckpts"
+mm_dir = os.path.join(ckpt_dir, "MMAudio")
+os.makedirs(mm_dir, exist_ok=True)
+
+snapshot_download(
+    repo_id="hkchengrex/MMAudio",
+    local_dir=mm_dir,
+    local_dir_use_symlinks=False,
+    resume_download=True,
+    allow_patterns=[
+        "ext_weights/best_netG.pt",
+        "ext_weights/v1-16.pth",
+    ],
+)
+print("✅ MMAudio ok:", mm_dir)
+PY
+  echo "✅ MMAudio Download fertig."
+  touch "$MM_FLAG_FILE"
+else
+  echo "⏭️ MMAudio übersprungen (MMAUDIO != on)."
 fi
 
 echo "🏁 init done."

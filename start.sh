@@ -59,9 +59,9 @@ else
   echo "⏭️  FASTAPI=off – überspringe FastAPI."
 fi
 
-# ============ 🔷 Download/Init (WAN) ============
+# ============ 🔷 Download/Init (OVI) ============
 if [ "${Init:-off}" = "on" ]; then
-  echo "🚀 Starte WAN/Think-Init"
+  echo "🚀 Starte OVI Init"
   if [ -x /workspace/init.sh ]; then
     nohup bash /workspace/init.sh >/dev/null 2>&1 & disown
   else
