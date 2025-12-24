@@ -43,6 +43,17 @@ RUN python -V && python -m pip -V \
 
 
 
+# --- FlashAttention passend zu Torch 2.6 + CUDA12 + ABI (cxx11abi True/False) ---
+ARG FLASH_ATTN_VER=2.7.4.post1
+
+RUN python -m pip uninstall -y flash-attn flash_attn || true && \
+    ABI=$(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')") && \
+    WHEEL="flash_attn-${FLASH_ATTN_VER}+cu12torch2.6cxx11abi${ABI}-cp310-cp310-linux_x86_64.whl" && \
+    wget -nv "https://github.com/Dao-AILab/flash-attention/releases/download/v${FLASH_ATTN_VER}/${WHEEL}" -O /tmp/flash_attn.whl && \
+    python -m pip install --no-cache-dir /tmp/flash_attn.whl && \
+    rm -f /tmp/flash_attn.whl && \
+    python -c "import flash_attn; print('flash_attn ok:', flash_attn.__version__)"
+
 
 
 # Nichts weiter – start.sh kümmert sich um Clone, Modelle, Jupyter etc.

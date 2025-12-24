@@ -68,7 +68,7 @@ if [ "${Init:-off}" = "on" ]; then
     echo "⚠️  /workspace/init.sh nicht gefunden oder nicht ausführbar."
   fi
 else
-  echo "⏭️  Init=off – überspringe WAN/Think-Download."
+  echo "⏭️  Init=off – überspringe OVI-Download."
 fi
 
 # ============ ✅ ABSCHLUSS ============
