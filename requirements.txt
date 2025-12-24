@@ -35,7 +35,7 @@ dashscope
 scipy
 moviepy==1.0.3
 librosa
-optimum-quant
+optimum-quanto
 omegaconf
 pandas
 hf_transfer
