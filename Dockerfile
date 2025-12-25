@@ -27,10 +27,15 @@ RUN python -V && python -m pip -V \
 
 
 
-# FlashAttention (Py3.11 + Torch 2.6)
-RUN python -m pip uninstall -y flash-attn flash_attn || true && \
-    python -m pip install --no-cache-dir \
-    "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiTRUE-cp311-cp311-linux_x86_64.whl"
+# FlashAttention (passt sich automatisch an Python cp310/cp311/cp312 an)
+RUN set -eux; \
+  python -m pip uninstall -y flash-attn flash_attn || true; \
+  PYTAG="$(python -c 'import sys; print(f"cp{sys.version_info.major}{sys.version_info.minor}")')"; \
+  python -m pip install --no-cache-dir \
+    "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiTRUE-${PYTAG}-${PYTAG}-linux_x86_64.whl" \
+  || python -m pip install --no-cache-dir \
+    "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiFALSE-${PYTAG}-${PYTAG}-linux_x86_64.whl"
+
 
 
 
