@@ -18,19 +18,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
 WORKDIR /workspace
 
 
-# Quick sanity check: nutzt diese Python-Env wirklich Torch?
-RUN which python && python -V && python -c "import torch; print('torch=', torch.__version__)"
-
-
-# FlashAttention (Py3.11 + Torch 2.6) – TRUE oder FALSE ABI automatisch per Fallback
-RUN python -m pip uninstall -y flash-attn flash_attn || true && \
-    python -m pip install --no-cache-dir \
-      "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiTRUE-cp311-cp311-linux_x86_64.whl" \
-    || python -m pip install --no-cache-dir \
-      "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiFALSE-cp311-cp311-linux_x86_64.whl"
-
-
-
 
 # 📦 Restliche Python-Deps
 # 4) Rest über requirements.txt (einmal!)
