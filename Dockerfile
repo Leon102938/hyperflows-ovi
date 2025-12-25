@@ -22,15 +22,12 @@ WORKDIR /workspace
 RUN which python && python -V && python -c "import torch; print('torch=', torch.__version__)"
 
 
-# Nur kleine Tools; KEIN Python/Torch-Reinstall!
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    git git-lfs ffmpeg libsndfile1 libsentencepiece-dev curl wget jq tzdata uuid-runtime \
- && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
- && dpkg-reconfigure -f noninteractive tzdata \
- && git lfs install --system \
- && mkdir -p "$HF_HOME" "$TRANSFORMERS_CACHE" "$HF_HUB_CACHE" \
- && rm -rf /var/lib/apt/lists/*
-
+# FlashAttention (Py3.11 + Torch 2.6) – TRUE oder FALSE ABI automatisch per Fallback
+RUN python -m pip uninstall -y flash-attn flash_attn || true && \
+    python -m pip install --no-cache-dir \
+      "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiTRUE-cp311-cp311-linux_x86_64.whl" \
+    || python -m pip install --no-cache-dir \
+      "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiFALSE-cp311-cp311-linux_x86_64.whl"
 
 
 
@@ -43,17 +40,10 @@ RUN python -V && python -m pip -V \
 
 
 
-ENV FLASH_ATTN_VER=2.6.3
-
-RUN set -eux; \
-  python -m pip uninstall -y flash-attn flash_attn || true; \
-  ABI=$(python -c "import torch; print('TRUE' if torch._C._GLIBCXX_USE_CXX11_ABI else 'FALSE')"); \
-  PYTAG=$(python -c "import sys; print(f'cp{sys.version_info.major}{sys.version_info.minor}')"); \
-  WHEEL="flash_attn-${FLASH_ATTN_VER}+cu125torch2.6cxx11abi${ABI}-${PYTAG}-${PYTAG}-linux_x86_64.whl"; \
-  wget -nv "https://github.com/Dao-AILab/flash-attention/releases/download/v${FLASH_ATTN_VER}/${WHEEL}" -O /tmp/flash_attn.whl; \
-  python -m pip install --no-cache-dir /tmp/flash_attn.whl; \
-  rm -f /tmp/flash_attn.whl; \
-  python -c "import flash_attn; print('flash_attn ok:', flash_attn.__version__)"
+# FlashAttention (Py3.11 + Torch 2.6)
+RUN python -m pip uninstall -y flash-attn flash_attn || true && \
+    python -m pip install --no-cache-dir \
+    "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiTRUE-cp311-cp311-linux_x86_64.whl"
 
 
 
