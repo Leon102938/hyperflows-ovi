@@ -120,4 +120,9 @@ else
   echo "⏭️ MMAudio übersprungen (MMAUDIO != on)."
 fi
 
+
+mkdir -p /workspace/status
+touch /workspace/status/ovi_ready
+
+
 echo "🏁 init done."

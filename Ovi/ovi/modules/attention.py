@@ -1,5 +1,10 @@
 # Copyright 2024-2025 The Alibaba Wan Team Authors. All rights reserved.
 import torch
+import os
+
+DEBUG_ATTN = os.getenv("OVI_DEBUG_ATTN", "0") == "1"
+PRINTED_ATTN = False
+
 
 try:
     import flash_attn_interface
@@ -20,6 +25,7 @@ __all__ = [
     'attention',
     'attention_with_weights',
 ]
+
 
 
 def flash_attention(
@@ -92,6 +98,17 @@ def flash_attention(
         )
 
     # apply attention
+
+    global PRINTED_ATTN
+    if DEBUG_ATTN and not PRINTED_ATTN:
+        backend = "FA3" if ((version is None or version == 3) and FLASH_ATTN_3_AVAILABLE) else ("FA2" if FLASH_ATTN_2_AVAILABLE else "SDPA")
+        print(f"[OVI][ATTN] backend={backend}  FA3={FLASH_ATTN_3_AVAILABLE}  FA2={FLASH_ATTN_2_AVAILABLE}  version={version}")
+        PRINTED_ATTN = True
+
+
+
+
+    
     if (version is None or version == 3) and FLASH_ATTN_3_AVAILABLE:
         # Note: dropout_p, window_size are not supported in FA3 now.
         x = flash_attn_interface.flash_attn_varlen_func(
