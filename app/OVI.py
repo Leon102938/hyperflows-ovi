@@ -150,17 +150,42 @@ class _OVIService:
         await self._queue.put(jid)
         return jid
 
+    # ✅ NEU: Hilfsfunktion um die neueste MP4 im Output zu finden
+    def _latest_mp4(self, job_id: str) -> Optional[Path]:
+        jd = (self.jobs_root / job_id).resolve()
+        out_dir = jd / "output"
+        if not out_dir.exists():
+            return None
+
+        mp4s = list(out_dir.rglob("*.mp4"))
+        if not mp4s:
+            return None
+
+        mp4s.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+        return mp4s[0]
+
     def get_status(self, job_id: str) -> Dict[str, Any]:
         job = self.jobs.get(job_id)
         if job:
-            return asdict(job)
+            data = asdict(job)
+        else:
+            # fallback: nach restart von disk lesen
+            jf = (self.jobs_root / job_id / "job_status.json")
+            if jf.exists():
+                data = self._load_json(jf)
+            else:
+                raise KeyError("job not found")
 
-        # fallback: nach restart von disk lesen
-        jf = (self.jobs_root / job_id / "job_status.json")
-        if jf.exists():
-            return self._load_json(jf)
+        # ✅ NEU: finalen MP4-Pfad + Name mitgeben
+        latest = self._latest_mp4(job_id)
+        if latest:
+            data["final_video_path"] = str(latest)
+            data["final_video_name"] = latest.name
+        else:
+            data["final_video_path"] = None
+            data["final_video_name"] = None
 
-        raise KeyError("job not found")
+        return data
 
     def get_file(self, job_id: str, path: Optional[str]) -> Path:
         jd = (self.jobs_root / job_id).resolve()
