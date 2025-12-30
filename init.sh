@@ -28,7 +28,7 @@ mkdir -p "$CKPT_DIR/Ovi"
 
 
 echo "[zimage] ensure model cache..."
-/opt/venvs/zimage/bin/hf download Tongyi-MAI/Z-Image-Turbo
+hf download Tongyi-MAI/Z-Image-Turbo --exclude "assets/*" "README.md"
 touch "$ZIMAGE_FLAG_FILE"
 echo "[zimage] ready."
 
