@@ -3,6 +3,8 @@
 
 set -e
 
+export HF_HOME=/workspace/.cache/hf
+
 # optional: Schalter aus tools.config (falls vorhanden)
 source ./tools.config 2>/dev/null || true
 
@@ -14,13 +16,23 @@ source ./tools.config 2>/dev/null || true
 STATUS_DIR="/workspace/status"
 CKPT_DIR="/workspace/Ovi/ckpts"
 
+ZIMAGE_FLAG_FILE="$STATUS_DIR/zimage_ready"
 OVI_FLAG_FILE="$STATUS_DIR/ovi_ready"
 WAN_FLAG_FILE="$STATUS_DIR/wan_assets_ready"
 MM_FLAG_FILE="$STATUS_DIR/mmaudio_ready"
 
+mkdir -p "$HF_HOME"
 mkdir -p "$STATUS_DIR"
 mkdir -p "$CKPT_DIR"
 mkdir -p "$CKPT_DIR/Ovi"
+
+
+echo "[zimage] ensure model cache..."
+/opt/venvs/zimage/bin/hf download Tongyi-MAI/Z-Image-Turbo
+touch "$ZIMAGE_FLAG_FILE"
+echo "[zimage] ready."
+
+
 
 echo "📁 CKPT_DIR: $CKPT_DIR"
 echo "⚙️  Flags: OVI=$OVI | WAN_ASSETS=$WAN_ASSETS | MMAUDIO=$MMAUDIO"

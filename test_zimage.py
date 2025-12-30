@@ -1,38 +1,29 @@
 import torch
 from diffusers import ZImagePipeline
 
-# 1. Load the pipeline
-# Use bfloat16 for optimal performance on supported GPUs
+out="/workspace/Ovi/inputs/zimage_test.png"
+
+dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float16
+
 pipe = ZImagePipeline.from_pretrained(
     "Tongyi-MAI/Z-Image-Turbo",
-    torch_dtype=torch.bfloat16,
+    torch_dtype=dtype,
     low_cpu_mem_usage=False,
 )
-pipe.to("cuda")
 
-# [Optional] Attention Backend
-# Diffusers uses SDPA by default. Switch to Flash Attention for better efficiency if supported:
-# pipe.transformer.set_attention_backend("flash")    # Enable Flash-Attention-2
-# pipe.transformer.set_attention_backend("_flash_3") # Enable Flash-Attention-3
+# VRAM sparen (macht es langsamer, aber hilft gegen OOM)
+pipe.enable_model_cpu_offload()
 
-# [Optional] Model Compilation
-# Compiling the DiT model accelerates inference, but the first run will take longer to compile.
-# pipe.transformer.compile()
+prompt = "Close-up ASMR food scene. A cute brown monkey sits at a small wooden table in a cozy kitchen, facing the camera. On a plate is a crispy schnitzel with lemon wedge and a small side salad. Soft warm lighting, shallow depth of field, ultra detailed food texture, stable camera, no text, no watermark."
 
-# [Optional] CPU Offloading
-# Enable CPU offloading for memory-constrained devices.
-# pipe.enable_model_cpu_offload()
-
-prompt = "Young Chinese woman in red Hanfu, intricate embroidery. Impeccable makeup, red floral forehead pattern. Elaborate high bun, golden phoenix headdress, red flowers, beads. Holds round folding fan with lady, trees, bird. Neon lightning-bolt lamp (⚡️), bright yellow glow, above extended left palm. Soft-lit outdoor night background, silhouetted tiered pagoda (西安大雁塔), blurred colorful distant lights."
-
-# 2. Generate Image
-image = pipe(
+img = pipe(
     prompt=prompt,
-    height=1024,
-    width=1024,
-    num_inference_steps=9,  # This actually results in 8 DiT forwards
-    guidance_scale=0.0,     # Guidance should be 0 for the Turbo models
+    height=768,
+    width=768,
+    num_inference_steps=9,  # ergibt 8 DiT forwards
+    guidance_scale=0.0,
     generator=torch.Generator("cuda").manual_seed(42),
 ).images[0]
 
-image.save("example.png")
+img.save(out)
+print("saved ->", out)
