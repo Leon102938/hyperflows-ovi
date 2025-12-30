@@ -32,17 +32,21 @@ RUN python -m pip uninstall -y flash-attn flash_attn || true && \
     "https://github.com/Dao-AILab/flash-attention/releases/download/v2.7.4.post1/flash_attn-2.7.4.post1+cu12torch2.6cxx11abiFALSE-cp310-cp310-linux_x86_64.whl"
 
 
+
 # =========================
-# Z-Image Turbo (separates venv, nutzt system Torch aus Base-Image)
+# Z-Image Turbo (separates venv, nutzt system Torch)
 # =========================
 ENV ZIMAGE_VENV=/opt/venvs/zimage
 
 RUN mkdir -p "${HF_HOME}" "${TRANSFORMERS_CACHE}" "${HF_HUB_CACHE}" \
  && python -m venv --system-site-packages "${ZIMAGE_VENV}" \
  && "${ZIMAGE_VENV}/bin/pip" install -U pip wheel setuptools \
- && "${ZIMAGE_VENV}/bin/pip" install -U --no-deps "huggingface_hub>=0.23" transformers accelerate safetensors \
+ && "${ZIMAGE_VENV}/bin/pip" install -U --no-deps "huggingface_hub>=0.23" accelerate safetensors \
+ && "${ZIMAGE_VENV}/bin/pip" install -U --no-deps "tokenizers>=0.22.0,<=0.23.0" \
+ && "${ZIMAGE_VENV}/bin/pip" install -U --no-deps "transformers>=4.44" \
  && "${ZIMAGE_VENV}/bin/pip" install -U --no-deps git+https://github.com/huggingface/diffusers \
- && "${ZIMAGE_VENV}/bin/python" -c "import torch; from diffusers import ZImagePipeline; print('ZImage OK | torch:', torch.__version__)"
+ && "${ZIMAGE_VENV}/bin/python" -c "import torch, tokenizers, transformers; from diffusers import ZImagePipeline; print('ZImage OK | torch:', torch.__version__, '| tokenizers:', tokenizers.__version__, '| transformers:', transformers.__version__)"
+
 
 
 
