@@ -33,16 +33,17 @@ RUN python -m pip uninstall -y flash-attn flash_attn || true && \
 
 
 # =========================
-# Z-Image Turbo (separates venv, nutzt denselben HF cache wie OVI)
+# Z-Image Turbo (separates venv, nutzt system Torch aus Base-Image)
 # =========================
 ENV ZIMAGE_VENV=/opt/venvs/zimage
 
 RUN mkdir -p "${HF_HOME}" "${TRANSFORMERS_CACHE}" "${HF_HUB_CACHE}" \
- && python -m venv "${ZIMAGE_VENV}" \
+ && python -m venv --system-site-packages "${ZIMAGE_VENV}" \
  && "${ZIMAGE_VENV}/bin/pip" install -U pip wheel setuptools \
- && "${ZIMAGE_VENV}/bin/pip" install -U "huggingface_hub>=0.23" transformers accelerate safetensors \
- && "${ZIMAGE_VENV}/bin/pip" install -U git+https://github.com/huggingface/diffusers \
- && "${ZIMAGE_VENV}/bin/python" -c "from diffusers import ZImagePipeline; print('ZImagePipeline OK')"
+ && "${ZIMAGE_VENV}/bin/pip" install -U --no-deps "huggingface_hub>=0.23" transformers accelerate safetensors \
+ && "${ZIMAGE_VENV}/bin/pip" install -U --no-deps git+https://github.com/huggingface/diffusers \
+ && "${ZIMAGE_VENV}/bin/python" -c "import torch; from diffusers import ZImagePipeline; print('ZImage OK | torch:', torch.__version__)"
+
 
 
 
