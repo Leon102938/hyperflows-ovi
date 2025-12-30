@@ -36,6 +36,11 @@ def save_video(
     if audio_numpy is not None:
         assert isinstance(audio_numpy, np.ndarray), "audio_numpy must be a numpy array"
         assert np.abs(audio_numpy).max() <= 1.0, "audio_numpy values must be in range [-1, 1]"
+        # Boost audio a bit by default (30%) to avoid very low output volume.
+        # You can override at runtime: export OVI_AUDIO_GAIN=1.0 (no boost) or e.g. 2.0 (louder).
+        import os
+        gain = float(os.getenv("OVI_AUDIO_GAIN", "1.3"))
+        audio_numpy = np.clip(audio_numpy * gain, -1.0, 1.0)
 
     # Reorder dimensions: (C, F, H, W) → (F, H, W, C)
     video_numpy = video_numpy.transpose(1, 2, 3, 0)
