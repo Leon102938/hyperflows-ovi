@@ -1,43 +1,29 @@
-# /workspace/app/main.py
+import os
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 from fastapi.responses import FileResponse
-import os
 
-# ✅ Editor bleibt
 from .editor_api import EditRequest, render_edit
-
-# ✅ NUR OVI (WAN + ThinkSound komplett weg)
-from .OVI import (
-    OVIJobRequest,
-    submit_job,
-    get_status,
-    get_file,
-    OVI_ROOT,
-    OVI_CKPT_DIR,
-)
-
-# 🔗 Proxy-Basis-URL aus start.sh (BASE_URL)
-BASE_URL = os.getenv("BASE_URL", "").rstrip("/")
+from .OVI import OVIJobRequest, submit_job, get_status, get_file, OVI_ROOT, OVI_CKPT_DIR
+from .zimage import router as zimage_router
 
 app = FastAPI(title="OVI API", version="1.0")
 
-# Basis-Verzeichnis der App
-BASE_DIR = Path(__file__).resolve().parent.parent  # -> /workspace
-# Ordner, in dem FFmpeg die Videos speichert
-EXPORT_DIR = BASE_DIR / "exports"                 # -> /workspace/exports
+# ---- static exports (falls du das nutzt) ----
+BASE_DIR = Path(__file__).resolve().parent.parent  # /workspace
+EXPORT_DIR = BASE_DIR / "exports"
 EXPORT_DIR.mkdir(parents=True, exist_ok=True)
 
-# /exports/... als statisches Verzeichnis bereitstellen
-app.mount(
-    "/exports",
-    StaticFiles(directory=str(EXPORT_DIR), html=False),
-    name="exports",
-)
+app.mount("/exports", StaticFiles(directory=str(EXPORT_DIR), html=False), name="exports")
 
-# ✅ DW Ready Flag für n8n
+# ---- Routers ----
+app.include_router(zimage_router, prefix="/zimage", tags=["zimage"])
+
+# ---- Ready Flags ----
 OVI_FLAG_FILE = "/workspace/status/ovi_ready"
+ZIMAGE_FLAG_FILE = "/workspace/status/zimage_ready"
 
 
 @app.get("/health")
@@ -48,22 +34,22 @@ def health():
 @app.get("/DW/ready")
 def dw_ready():
     ready = os.path.exists(OVI_FLAG_FILE)
-    return {
-        "ready": ready,
-        "message": "OVI bereit." if ready else "OVI wird noch vorbereitet."
-    }
+    return {"ready": ready, "message": "OVI bereit." if ready else "OVI wird noch vorbereitet."}
 
 
-# ✅ Editor Endpoint bleibt
+@app.get("/DW/zimage_ready")
+def dw_zimage_ready():
+    ready = os.path.exists(ZIMAGE_FLAG_FILE)
+    return {"ready": ready, "message": "Z-Image bereit." if ready else "Z-Image wird noch vorbereitet."}
+
+
+# ---- Editor ----
 @app.post("/editor/render")
 def editor_render(request: EditRequest):
     return render_edit(request)
 
 
-# -------------------------
-# ✅ OVI API Endpoints
-# -------------------------
-
+# ---- OVI Jobs (Polling wie gehabt) ----
 @app.post("/jobs")
 async def create_job(body: OVIJobRequest):
     try:
@@ -92,3 +78,4 @@ def job_file(job_id: str, path: str | None = None):
         raise HTTPException(status_code=404, detail=str(e))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
