@@ -97,11 +97,16 @@ class _OVIService:
         except Exception:
             pass
 
-    def _write_prompt_csv(self, p: Path, prompt: str):
+    # ✅ UPDATED: kann jetzt optional image_path in die CSV schreiben (i2v/t2iv)
+    def _write_prompt_csv(self, p: Path, prompt: str, image_path: Optional[str] = None):
         with p.open("w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
-            w.writerow(["text_prompt"])
-            w.writerow([prompt])
+            if image_path:
+                w.writerow(["text_prompt", "image_path"])
+                w.writerow([prompt, image_path])
+            else:
+                w.writerow(["text_prompt"])
+                w.writerow([prompt])
 
     async def create_job(self, prompt: str, overrides: Dict[str, Any], job_id: Optional[str]) -> str:
         await self.ensure_worker()
@@ -119,18 +124,53 @@ class _OVIService:
         log_file = job_dir / "job.log"
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # prompt.csv schreiben
-        self._write_prompt_csv(prompt_csv, prompt)
-
         # run.json aus run_base bauen und NUR nötig überschreiben (ABSOLUTE Pfade!)
         cfg = self._load_json(self.run_base)
+
+        # ✅ NEW: mode + image_path bestimmen (CSV ist bei OVI i2v verdrahtet!)
+        mode = str((overrides or {}).get("mode", cfg.get("mode", ""))).lower()
+
+        img = (overrides or {}).get("image_path") or cfg.get("image_path")
+        imgs = (overrides or {}).get("image_paths") or cfg.get("image_paths")
+
+        if not img and isinstance(imgs, list) and len(imgs) > 0 and imgs[0]:
+            img = imgs[0]
+
+        # ✅ CSV schreiben (t2v: nur prompt | i2v/t2iv: prompt + image_path)
+        if mode in ("i2v", "t2iv", "img2vid", "image2video"):
+            if not img:
+                raise ValueError(f"mode={mode} requires overrides.image_path (or image_paths[0])")
+            self._write_prompt_csv(prompt_csv, prompt, image_path=img)
+        else:
+            self._write_prompt_csv(prompt_csv, prompt)
 
         # OVI soll aus /workspace/Ovi laufen, aber prompt/output pro Job nutzen:
         cfg["text_prompt"] = str(prompt_csv)   # z.B. /workspace/jobs/<id>/prompt.csv
         cfg["output_dir"] = str(output_dir)    # z.B. /workspace/jobs/<id>/output
 
+        # existing overrides into cfg (top-level)
         for k, v in (overrides or {}).items():
             cfg[k] = v
+
+        # --- IMPORTANT: i2v compatibility mapping ---
+        # if user gives image_path -> also fill image_paths
+        img2 = (overrides or {}).get("image_path")
+        imgs2 = (overrides or {}).get("image_paths")
+
+        if img2 and not imgs2:
+            cfg["image_path"] = img2
+            cfg["image_paths"] = [img2]
+
+        if imgs2:
+            cfg["image_paths"] = imgs2
+            if isinstance(imgs2, list) and len(imgs2) > 0 and imgs2[0]:
+                cfg["image_path"] = imgs2[0]
+
+        # optional: hard validation (recommended)
+        mode2 = str(cfg.get("mode", "")).lower()
+        if mode2 in ("i2v", "t2iv", "img2vid", "image2video"):
+            if not cfg.get("image_paths") or not all(cfg["image_paths"]):
+                raise ValueError(f"mode={mode2} requires image_paths (got: {cfg.get('image_paths')})")
 
         self._save_json(run_json, cfg)
 
