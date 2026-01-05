@@ -15,6 +15,8 @@ router = APIRouter()
 # ---- Config ----
 ZIMAGE_PY = os.environ.get("ZIMAGE_PY", "/opt/venvs/zimage/bin/python")
 HF_HOME = os.environ.get("HF_HOME", "/workspace/.cache/hf")
+# Wir holen die dynamische BASE_URL vom RunPod
+BASE_URL = os.environ.get("BASE_URL", "").rstrip("/") 
 
 STATUS_DIR = Path(os.environ.get("STATUS_DIR", "/workspace/status"))
 ZIMAGE_READY_FLAG = Path(os.environ.get("ZIMAGE_READY_FLAG", str(STATUS_DIR / "zimage_ready")))
@@ -49,7 +51,15 @@ def _read_status(job_id: str) -> Dict[str, Any]:
     p = _job_dir(job_id) / "status.json"
     if not p.exists():
         raise FileNotFoundError
-    return json.loads(p.read_text(encoding="utf-8"))
+    
+    data = json.loads(p.read_text(encoding="utf-8"))
+    
+    # ✅ DYNAMISCHE URL ERZEUGEN
+    # Wenn der Job erfolgreich war, bauen wir den absoluten Link zusammen
+    if data.get("state") == "succeeded":
+        data["file_url"] = f"{BASE_URL}/zimage/jobs/{job_id}/file"
+    
+    return data
 
 
 async def _run_job(job_id: str) -> None:
@@ -165,8 +175,7 @@ async def zimage_submit(req: ZImageJobRequest):
 
     return {
         "job_id": job_id,
-        "status_url": f"/zimage/jobs/{job_id}",
-        "file_url": f"/zimage/jobs/{job_id}/file",
+        "status_url": f"{BASE_URL}/zimage/jobs/{job_id}",
         "state": "queued",
     }
 
@@ -174,6 +183,7 @@ async def zimage_submit(req: ZImageJobRequest):
 @router.get("/jobs/{job_id}")
 def zimage_status(job_id: str):
     try:
+        # Hier wird jetzt automatisch die BASE_URL in das Resultat gemischt
         return _read_status(job_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="job_id not found")
